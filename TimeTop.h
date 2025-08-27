@@ -11,6 +11,7 @@
 #define TIMER_INTERVAL 1000  // Update every x milisec
 #define DEFAULT_TIMEOUT_MINUTES 90
 #define PROGRESS_BAR_THICKNESS 4
+#define DEFAULT_TRANSPARENCY 200
 
 // Global variables
 extern HINSTANCE g_hInst;
@@ -19,6 +20,7 @@ extern DWORD g_dwStartTime;
 extern DWORD g_dwTimeoutMinutes;
 extern COLORREF g_ProgressColor;
 extern int g_ProgressThickness;
+extern BYTE g_ProgressTransparency;
 extern bool g_bTimerRunning;
 
 // Function declarations
@@ -32,5 +34,6 @@ void ShowContextMenu(HWND hWnd, int x, int y);
 void ShowSettingsDialog();
 void StartTimer();
 void StopTimer();
+void UpdateTransparency();
 DWORD GetRemainingTimeMs();
 std::wstring FormatTime(DWORD timeMs);
