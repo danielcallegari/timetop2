@@ -17,6 +17,7 @@ DWORD g_dwStartTime = 0;
 DWORD g_dwTimeoutMinutes = DEFAULT_TIMEOUT_MINUTES;
 COLORREF g_ProgressColor = RGB(0, 120, 215); // Default blue
 int g_ProgressThickness = PROGRESS_BAR_THICKNESS;
+BYTE g_ProgressTransparency = DEFAULT_TRANSPARENCY;
 bool g_bTimerRunning = false;
 
 // Progress window class name
@@ -107,7 +108,7 @@ void CreateProgressWindow()
     }
 
     // Set window transparency
-    SetLayeredWindowAttributes(g_hProgressWnd, 0, 200, LWA_ALPHA);
+    SetLayeredWindowAttributes(g_hProgressWnd, 0, g_ProgressTransparency, LWA_ALPHA);
     
     // Show the window
     ShowWindow(g_hProgressWnd, SW_SHOW);
@@ -276,6 +277,14 @@ void StopTimer()
     InvalidateRect(g_hProgressWnd, nullptr, TRUE);
 }
 
+void UpdateTransparency()
+{
+    if (g_hProgressWnd)
+    {
+        SetLayeredWindowAttributes(g_hProgressWnd, 0, g_ProgressTransparency, LWA_ALPHA);
+    }
+}
+
 DWORD GetRemainingTimeMs()
 {
     if (!g_bTimerRunning)
@@ -357,6 +366,14 @@ INT_PTR CALLBACK SettingsDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
             SendMessage(hSpin, UDM_SETRANGE32, 2, 32);
             SendMessage(hSpin, UDM_SETPOS32, 0, g_ProgressThickness);
             
+            // Set transparency
+            SetDlgItemInt(hDlg, IDC_TRANSPARENCY_EDIT, g_ProgressTransparency, FALSE);
+            
+            // Set up transparency spin control with range limits (1-255)
+            HWND hTransSpin = GetDlgItem(hDlg, IDC_TRANSPARENCY_SPIN);
+            SendMessage(hTransSpin, UDM_SETRANGE32, 1, 255);
+            SendMessage(hTransSpin, UDM_SETPOS32, 0, g_ProgressTransparency);
+            
             return (INT_PTR)TRUE;
         }
 
@@ -408,6 +425,20 @@ INT_PTR CALLBACK SettingsDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
                     {
                         // Show error message and don't close dialog
                         MessageBox(hDlg, L"Thickness must be between 2 and 32 pixels.", L"Invalid Input", MB_OK | MB_ICONWARNING);
+                        return (INT_PTR)TRUE; // Stay in dialog
+                    }
+                    
+                    // Get transparency
+                    int transparency = GetDlgItemInt(hDlg, IDC_TRANSPARENCY_EDIT, nullptr, FALSE);
+                    if (transparency >= 1 && transparency <= 255)
+                    {
+                        g_ProgressTransparency = (BYTE)transparency;
+                        UpdateTransparency();
+                    }
+                    else
+                    {
+                        // Show error message and don't close dialog
+                        MessageBox(hDlg, L"Transparency must be between 1 and 255 (1=almost invisible, 255=opaque).", L"Invalid Input", MB_OK | MB_ICONWARNING);
                         return (INT_PTR)TRUE; // Stay in dialog
                     }
                     
